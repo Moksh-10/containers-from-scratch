@@ -1,4 +1,5 @@
-```docker run -it \
+```
+docker run -it \
   --name container \
   --privileged \
   -v "$(pwd):/workspace" \
