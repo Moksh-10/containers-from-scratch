@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strconv"
 	"syscall"
 )
 
@@ -36,6 +38,8 @@ func run() {
 func child() {
 	fmt.Printf("child running %v as pid %d\n", os.Args[2], os.Getpid())
 
+	cg()
+
 	must(syscall.Sethostname([]byte("made container")))
 	must(syscall.Chroot("/container-fs"))
 	must(syscall.Chdir("/"))
@@ -50,6 +54,13 @@ func child() {
 	must(cmd.Run())
 
 	must(syscall.Unmount("/proc", 0))
+}
+
+func cg() {
+	cgroup := "/sys/fs/cgroup/demo-cont"
+	os.Mkdir(cgroup, 0755)
+	must(os.WriteFile(filepath.Join(cgroup, "pids.max"), []byte("20"), 0700))
+	must(os.WriteFile(filepath.Join(cgroup, "cgroup.procs"), []byte(strconv.Itoa(os.Getpid())), 0700))
 }
 
 func must(err error) {
